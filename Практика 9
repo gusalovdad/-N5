@@ -1,4 +1,4 @@
--Задание 1-
+-Задание 1- ///////////////////////////////////////////////////
 
 #include <iostream>
 #include <stdexcept>
@@ -31,7 +31,7 @@ int main() {
     return 0;
 }
 
--Задание 2-
+-Задание 2- ///////////////////////////////////////////////////
 
 #include <iostream>
 #include <stdexcept>
@@ -79,7 +79,7 @@ int main() {
     return 0;
 }
 
--Задание 3-
+-Задание 3- ///////////////////////////////////////////////////
 
 #include <iostream>
 #include <stdexcept>
@@ -138,7 +138,7 @@ int main() {
     }
 }
 
--Задание 4-
+-Задание 4- ///////////////////////////////////////////////////
 
 #include <iostream>
 #include <fstream>
@@ -187,4 +187,280 @@ int main() {
     catch (const std::exception& e) {
         std::cout << "Ошибка: " << e.what() << std::endl;
     }
+}
+
+-Задание 5- ///////////////////////////////////////////////////
+
+#include <iostream>
+#include <exception>
+#include <string>
+#include <vector>
+
+class LibraryException : public std::exception {
+protected:
+    int errorCode;
+    std::string message;
+public:
+    LibraryException(const std::string& msg, int code)
+        : message(msg), errorCode(code) {
+    }
+    const char* what() const noexcept override {
+        return message.c_str();
+    }
+    int getCode() const { return errorCode; }
+};
+class BookNotFoundException : public LibraryException {
+public:
+    BookNotFoundException(const std::string& isbn)
+        : LibraryException("Книга не найдена: " + isbn, 1) {
+    }
+};
+class BookAlreadyBorrowedException : public LibraryException {
+public:
+    BookAlreadyBorrowedException(const std::string& isbn)
+        : LibraryException("Книга уже выдана: " + isbn, 2) {
+    }
+};
+class ReaderNotFoundException : public LibraryException {
+public:
+    ReaderNotFoundException(int id)
+        : LibraryException("Читатель не найден: " + std::to_string(id), 3) {
+    }
+};
+class MaxBooksReachedException : public LibraryException {
+public:
+    MaxBooksReachedException(int id)
+        : LibraryException("Превышен лимит книг у читателя: " + std::to_string(id), 4) {
+    }
+};
+class InvalidReturnDateException : public LibraryException {
+public:
+    InvalidReturnDateException()
+        : LibraryException("Некорректная дата возврата", 5) {
+    }
+};
+class Library {
+public:
+    void borrowBook(std::string isbn, int readerId) {
+        if (isbn == "0") throw BookNotFoundException(isbn);
+        if (isbn == "1") throw BookAlreadyBorrowedException(isbn);
+        if (readerId == -1) throw ReaderNotFoundException(readerId);
+        if (readerId > 5) throw MaxBooksReachedException(readerId);
+
+        std::cout << "Книга выдана\n";
+    }
+};
+int main() {
+    Library lib;
+
+    try {
+        lib.borrowBook("1", 2);
+    }
+    catch (const LibraryException& e) {
+        std::cout << "Ошибка: " << e.what()
+            << " Код: " << e.getCode() << std::endl;
+    }
+}
+
+-Задание 6- ///////////////////////////////////////////////////
+
+#include <iostream>
+#include <stdexcept>
+
+class SafeStack {
+private:
+    int* arr;
+    int capacity;
+    int size;
+public:
+    SafeStack() {
+        capacity = 2;
+        size = 0;
+        arr = new int[capacity];
+    }
+    ~SafeStack() {
+        delete[] arr;
+    }
+    void push(int x) {
+        if (size == capacity) {
+            capacity = capacity * 2;
+            int* temp = new int[capacity];
+
+            for (int i = 0; i < size; i++) {
+                temp[i] = arr[i];
+            }
+            delete[] arr;
+            arr = temp;
+        }
+        arr[size] = x;
+        size++;
+    }
+    void pop() {
+        if (size == 0) {
+            throw std::out_of_range("Стек пуст");
+        }
+        size--;
+    }
+    int top() {
+        if (size == 0) {
+            throw std::out_of_range("Стек пуст");
+        }
+        return arr[size - 1];
+    }
+};
+
+int main() {
+    SafeStack st;
+    try {
+        st.push(5);
+        st.push(15);
+        std::cout << "Верхний элемент: " << st.top() << std::endl;
+        st.pop();
+        st.pop();
+        st.pop();
+    }
+    catch (std::exception& e) {
+        std::cout << "Ошибка: " << e.what() << std::endl;
+    }
+    return 0;
+}
+
+-Задание 7- ///////////////////////////////////////////////////
+
+#include <iostream>
+#include <fstream>
+#include <string>
+
+int main() {
+    std::string name;
+    std::cout << "Введите имя файла: ";
+    std::cin >> name;
+    std::ifstream file(name);
+    if (!file) {
+        std::cout << "Не удалось открыть файл\n";
+        return 1;
+    }
+    int ok = 0;
+    int bad = 0;
+    double sum = 0;
+    std::string s;
+    while (std::getline(file, s)) {
+        try {
+            double x = std::stod(s);
+            sum = sum + x;
+            ok++;
+        }
+        catch (...) {
+            std::cout << "Ошибка в строке: " << s << std::endl;
+            bad++;
+        }
+    }
+    std::cout << "\nРезультат:\n";
+    std::cout << "Корректных строк: " << ok << std::endl;
+    std::cout << "Ошибок: " << bad << std::endl;
+    std::cout << "Сумма: " << sum << std::endl;
+    file.close();
+
+    return 0;
+}
+
+-Задание 8- ///////////////////////////////////////////////////
+
+#include <iostream>
+#include <vector>
+#include <string>
+
+// базовое исключение
+class MyException : public std::exception {
+protected:
+    std::string text;
+
+public:
+    MyException(std::string t) {
+        text = t;
+    }
+    const char* what() const noexcept {
+        return text.c_str();
+    }
+};
+class NoConcert : public MyException {
+public:
+    NoConcert() : MyException("Концерт не найден") {}
+};
+class NoSeats : public MyException {
+public:
+    NoSeats() : MyException("Нет мест") {}
+};
+class PayError : public MyException {
+public:
+    PayError() : MyException("Ошибка оплаты") {}
+};
+
+struct Concert {
+    std::string name;
+    int total;
+    int free;
+    double price;
+};
+
+
+class System {
+private:
+    std::vector<Concert> list;
+
+public:
+    void add(std::string name, int seats, double price) {
+        Concert c;
+        c.name = name;
+        c.total = seats;
+        c.free = seats;
+        c.price = price;
+
+        list.push_back(c);
+    }
+    int find(std::string name) {
+        for (int i = 0; i < list.size(); i++) {
+            if (list[i].name == name)
+                return i;
+        }
+        throw NoConcert();
+    }
+    void pay() {
+        throw PayError(); // специально
+    }
+    void book(std::string name, int count) {
+        int i = find(name);
+        if (list[i].free < count)
+            throw NoSeats();
+        list[i].free -= count;
+        try {
+            pay();
+        }
+        catch (...) {
+            list[i].free += count; // возврат
+            throw;
+        }
+    }
+
+    void show() {
+        for (int i = 0; i < list.size(); i++) {
+            std::cout << list[i].name
+                << " осталось: "
+                << list[i].free << std::endl;
+        }
+    }
+};
+
+int main() {
+    System s;
+    s.add("Rock", 100, 50);
+    try {
+        s.book("Rock", 3);
+    }
+    catch (MyException& e) {
+        std::cout << "Ошибка: " << e.what() << std::endl;
+    }
+    s.show();
+
+    return 0;
 }
